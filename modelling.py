@@ -1,27 +1,28 @@
 import pandas as pd
+import mlflow
 import mlflow.sklearn
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-# Load dataset
-X_train = pd.read_csv("X_train.csv")
-X_test = pd.read_csv("X_test.csv")
+X_train = pd.read_csv("X_train.csv").astype('float64')
+X_test = pd.read_csv("X_test.csv").astype('float64')
 y_train = pd.read_csv("y_train.csv").values.ravel()
 y_test = pd.read_csv("y_test.csv").values.ravel()
 
-# Atur MLflow
-mlflow.set_experiment("Heart Disease Basic")
+mlflow.set_tracking_uri("file:./mlruns")  
+mlflow.set_experiment("HeartDisease_Basic")
 
-# Aktifkan autolog
 mlflow.sklearn.autolog()
 
-# Mulai run
-with mlflow.start_run():
+with mlflow.start_run(run_name="basic_autolog_run"):
     model = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    acc = accuracy_score(y_test, y_pred)
 
-    print("Model training selesai.")
-    print("Accuracy:", acc)
+  
+    mlflow.log_metric("test_accuracy", accuracy_score(y_test, y_pred))
+    mlflow.log_metric("test_precision", precision_score(y_test, y_pred))
+    mlflow.log_metric("test_recall", recall_score(y_test, y_pred))
+    mlflow.log_metric("test_f1", f1_score(y_test, y_pred))
+
+    print("Training dan testing selesai.")
